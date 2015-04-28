@@ -1,0 +1,178 @@
+{% load staticfiles %}  <!-- load the static page -->
+<html>
+	<head>
+        <link rel="stylesheet" type="text/css" href="{% static "pin.css" %}" >
+        <link href = "{% static "css/jquery.dataTables_themeroller.css" %}" rel="stylesheet" type="text/css">
+        <link href = "{% static "css/jquery.dataTables.css" %}" rel="stylesheet" type="text/css">
+        <link href = "{% static "css/jquery.dataTables.min.css" %}" rel="stylesheet" type="text/css">
+        
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.6/js/jquery.dataTables.min.js"></script>
+        
+        <script>
+        
+            function add_new_row(){
+             
+                 data1 = $("#new_data").val()
+                 check_dict = {"data_add":data1}
+                 
+                $.ajax({
+                    type :"GET",
+                    url:"{% url 'add_entry' %}",
+                    async: true,
+                    data:{"check_dict":JSON.stringify(check_dict), 'csrfmiddlewaretoken':'{{csrf_token}}'},   /*  pass the requested article dictonary of list to view  */
+                    datatype:'json',
+                    success:function(data){
+                        add_multiple_rows(data)
+                    }
+                }) ;
+                
+            }
+            
+            
+             function add_multiple_rows(data){
+                 alert(data)
+                /* var data = data[0];  */
+                $.each(data, function(k, v) {
+                     var html = 
+                    $.each(v, function(k1, v1) {
+                        office_name = v1.office_name
+                        pincode =v1.pincode
+                        office_type =  v1.office_type
+                        deliverystatus =   v1.deliverystatus
+                        divisionname =  v1.divisionname
+                        regionname =   v1.regionname
+                        circlename =  v1.circlename
+                        taluk =   v1.taluk
+                        districtname = v1.districtname
+                        statename =  v1.statename
+                        html+="<tr><td>"+office_name+"</td>"
+                          html+="<td>"+pincode+"</td>"
+                          html+="<td>"+office_type+"</td>"
+                          html+="<td>"+deliverystatus+"</td>"
+                          html+="<td>"+divisionname+"</td>"
+                          html+="<td>"+regionname+"</td>"
+                          html+="<td>"+circlename+"</td>"
+                          html+="<td>"+taluk+"</td>"
+                          html+="<td>"+districtname+"</td>"
+                          html+="<td>"+statename+"</td></tr>"
+                        
+                     
+                    $('#example').append(html)
+                    
+                    });
+                });
+            
+             }
+        
+        
+            /*delete the rows  */
+            
+                $(document).ready(function() {
+                    var table = $('#example').DataTable();
+                 
+                   /*   $('#example tbody').on( 'click', 'tr', function () {
+                        if ( $(this).hasClass('selected') ) {
+                            $(this).removeClass('selected');
+                        }
+                        else {
+                            table.$('tr.selected').removeClass('selected');
+                            $(this).addClass('selected');
+                        }
+                    } );  */
+                    
+                    $('#example tbody').on( 'click', 'tr', function () {
+                        $(this).toggleClass('selected');
+                    } ); 
+                   
+                 
+                    $('.button').click( function () {
+                        table.row('.selected').remove().draw( false );
+                    } );
+                } );
+                
+                
+                /* highlight the column */
+                $(document).ready(function() {
+                    var lastIdx = null;
+                    var table = $('#example').DataTable();
+                     
+                    $('#example tbody')
+                        .on( 'mouseover', 'td', function () {
+                            var colIdx = table.cell(this).index().column;
+                 
+                            if ( colIdx !== lastIdx ) {
+                                $( table.cells().nodes() ).removeClass( 'highlight' );
+                                $( table.column( colIdx ).nodes() ).addClass( 'highlight' );
+                            }
+                        } )
+                        .on( 'mouseleave', function () {
+                            $( table.cells().nodes() ).removeClass( 'highlight' );
+                        } );
+                } );
+                
+             
+            
+                
+         </script>
+    </head>
+
+	<h2>Search all over India</h2>
+	<div id = "main_container">
+		<div id = "form_container">
+           <form  id = "myForm" name = "myform"  action='{%url "search_pincode" %}' method="GET" >
+				Enter Pin/District/State/Locality: <input type="text" name="pin_text" style=" color:#88B0D5;font: bold 84% 'trebuchet ms',helvetica,sans-serif; width: 500px;" >
+	           <input  id = "button_id" type="submit" value="search" class="btn btn-primary" >
+	            <!-- <button type="button"  value="search" class="btn btn-primary" >Search</button> -->
+          </form>
+         </div>
+         <div id = "body_container">
+	         <div id = "result">
+	         	<button class = "button"  name = "delete_data" style=" border:#2e6da4;  color: #fff; background-color: #337ab7; margin-bottom: 24px; margin-right: 32px"> delete</button>
+	         	 Enter To Add New Pin/District/State/Locality: <input id = "new_data" type="text" name="pin_text" style=" color:#88B0D5;font: bold 84% 'trebuchet ms',helvetica,sans-serif; ">
+	         	<button class = "addRow"  name = "add_data" onclick = "add_new_row()" style=" border:#2e6da4;  color: #fff; background-color: #337ab7; margin-bottom: 24px; margin-left: 13px"> add row</button>
+	         	
+	         	<table id = "example" class="row-border hover order-column" cellspacing="0" width="100%" > 
+	              <thead>
+	              		
+                        <th>Office Name</th>
+                        <th>Pin Code</th>
+                        <th>Office Type</th>
+                        <th>Delivery Status</th>
+                        <th>Division</th>
+                        <th>Region</th>
+                        <th>Circle</th>
+                        <th>Taluk</th>
+                        <th>District</th>
+                        <th>State</th>
+	              </thead>
+	               <tbody>
+		         {% for i in total_search %}  <!-- display the article with title -->
+		          <tr>   
+		          	  
+		              <td>{{i.office_name}}</td>
+		              <td>{{i.pincode}}</td>
+		              <td>{{i.office_type}}</td>
+		              <td>{{i.deliverystatus}}</td>
+		              <td>{{i.divisionname}}</td>
+		              <td>{{i.regionname}}</td>
+		              <td>{{i.circlename}}</td>
+		              <td>{{i.taluk}}</td>
+		              <td>{{i.districtname}}</td>
+		              <td>{{i.statename}}</td>
+		          </tr>
+		         {% endfor%}
+	             </tbody>
+		      </table>
+	         </div>
+          
+         
+         </div>
+         
+     </div>
+     
+     
+	
+
+</html>
